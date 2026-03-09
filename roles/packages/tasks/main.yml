@@ -1,0 +1,52 @@
+---
+- name: Install base development tools
+  community.general.pacman:
+    name:
+      - linux-headers
+      - base-devel
+      - git
+      - bash-completion
+    state: present
+
+- name: Install camera and multimedia packages
+  community.general.pacman:
+    name:
+      - pipewire-libcamera
+      - libcamera-tools
+      - pipewire-v4l2
+      - v4l2loopback
+    state: present
+
+- name: Install network packages
+  community.general.pacman:
+    name:
+      - networkmanager-openvpn
+    state: present
+
+- name: Install desktop integration packages
+  community.general.pacman:
+    name:
+      - xdg-desktop-portal-gnome
+    state: present
+
+- name: Install system utilities
+  community.general.pacman:
+    name:
+      - less
+      - chezmoi
+      - sbctl
+    state: present
+
+- name: Install Docker packages
+  community.general.pacman:
+    name:
+      - docker
+      - docker-compose
+      - docker-buildx
+    state: present
+
+- name: Enable and start Docker service
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true

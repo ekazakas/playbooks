@@ -1,0 +1,44 @@
+---
+- name: Check sbctl status
+  ansible.builtin.command: sbctl status
+  register: sbctl_status
+  changed_when: false
+  failed_when: false
+
+- name: Create secure boot keys
+  ansible.builtin.command: sbctl create-keys
+  when: "'Installed' not in sbctl_status.stdout"
+  register: sbctl_create_keys
+  changed_when: sbctl_create_keys.rc == 0
+
+- name: Sign EFI binaries
+  ansible.builtin.command: "sbctl sign -s {{ item }}"
+  loop:
+    - /boot/EFI/BOOT/BOOTX64.EFI
+    - /boot/vmlinuz-linux
+    - /boot/EFI/systemd/systemd-bootx64.efi
+    - /boot/EFI/Linux/arch-linux.efi
+  changed_when: true
+
+- name: Verify signed EFI binaries
+  ansible.builtin.command: sbctl verify
+  register: sbctl_verify
+  changed_when: false
+
+- name: Remove immutable attribute from KEK EFI variable
+  ansible.builtin.command: >-
+    chattr -i /sys/firmware/efi/efivars/KEK-8be4df61-93ca-11d2-aa0d-00e098032b8c
+  changed_when: true
+  failed_when: false
+
+- name: Remove immutable attribute from db EFI variable
+  ansible.builtin.command: >-
+    chattr -i /sys/firmware/efi/efivars/db-d719b2cb-3d3a-4596-a3bc-dad00e67656f
+  changed_when: true
+  failed_when: false
+
+- name: Enroll secure boot keys
+  ansible.builtin.command: sbctl enroll-keys -m
+  when: "'Enrolled keys' not in sbctl_status.stdout"
+  register: sbctl_enroll
+  changed_when: sbctl_enroll.rc == 0
