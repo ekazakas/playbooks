@@ -5,37 +5,39 @@
       - linux-headers
       - base-devel
       - git
-      - bash-completion
+      - less
     state: present
+    become: true
 
-- name: Install camera and multimedia packages
+- name: Install env utilities
+  community.general.pacman:
+    name:
+      - bash-completion
+      - chezmoi
+    state: present
+    become: true
+
+- name: Install camera packages
   community.general.pacman:
     name:
       - pipewire-libcamera
       - libcamera-tools
-      - pipewire-v4l2
-      - v4l2loopback
     state: present
+    become: true
 
 - name: Install network packages
   community.general.pacman:
     name:
       - networkmanager-openvpn
     state: present
+    become: true
 
 - name: Install desktop integration packages
   community.general.pacman:
     name:
       - xdg-desktop-portal-gnome
     state: present
-
-- name: Install system utilities
-  community.general.pacman:
-    name:
-      - less
-      - chezmoi
-      - sbctl
-    state: present
+    become: true
 
 - name: Install Docker packages
   community.general.pacman:
@@ -44,6 +46,22 @@
       - docker-compose
       - docker-buildx
     state: present
+    become: true
+
+- name: Install Kubernetes packages
+  community.general.pacman:
+    name:
+      - kubectl
+      - helm
+    state: present
+    become: true
+
+- name: Install AWS CLI packages
+  community.general.pacman:
+    name:
+      - aws-cli-v2
+    state: present
+    become: true
 
 - name: Enable and start Docker service
   ansible.builtin.service:

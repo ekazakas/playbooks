@@ -1,7 +1,6 @@
 ---
 - name: Local environment setup
   hosts: local
-  become: true
   roles:
     - packages
     - flatpak

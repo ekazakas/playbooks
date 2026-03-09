@@ -3,11 +3,13 @@
   community.general.pacman:
     name: flatpak
     state: present
+    become: true
 
 - name: Add Flathub remote
   community.general.flatpak_remote:
     name: flathub
     state: present
+    method: user
     flatpakrepo_url: https://dl.flathub.org/repo/flathub.flatpakrepo
 
 - name: Install flatpak applications
@@ -16,4 +18,5 @@
       - org.mozilla.firefox
       - com.slack.Slack
     state: present
+    method: user
     remote: flathub
