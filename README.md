@@ -23,6 +23,13 @@ Installs the following packages via `pacman`:
 
 Also enables and starts the Docker service.
 
+### flatpak
+
+Installs Flatpak, adds the Flathub remote, and installs the following applications:
+
+- **Firefox** (`org.mozilla.firefox`)
+- **Slack** (`com.slack.Slack`)
+
 ### secure_boot
 
 Sets up Secure Boot using `sbctl`:
