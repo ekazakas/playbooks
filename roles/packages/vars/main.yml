@@ -3,7 +3,7 @@ system_packages:
   # Base development tools
   - linux-headers
   - base-devel
-  - git
+  - nvim
   - less
   # Env Utilities
   - bash-completion
