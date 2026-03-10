@@ -1,9 +1,10 @@
 ---
 - name: Install flatpak
+  become: true
   community.general.pacman:
     name: flatpak
     state: present
-    become: true
+    update_cache: true
 
 - name: Add Flathub remote
   community.general.flatpak_remote:
@@ -13,10 +14,9 @@
     flatpakrepo_url: https://dl.flathub.org/repo/flathub.flatpakrepo
 
 - name: Install flatpak applications
+  loop: "{{ flatpak_apps }}"
   community.general.flatpak:
-    name:
-      - org.mozilla.firefox
-      - com.slack.Slack
+    name: "{{ item }}"
     state: present
     method: user
     remote: flathub

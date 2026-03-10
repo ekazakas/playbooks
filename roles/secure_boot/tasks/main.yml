@@ -1,10 +1,10 @@
 ---
 - name: Install secure boot utilities
+  become: true
   community.general.pacman:
-    name:
-      - sbctl
+    name: "{{ sb_packages }}"
     state: present
-    become: true
+    update_cache: true
 
 - name: Check sbctl status
   ansible.builtin.command: sbctl status
@@ -13,53 +13,40 @@
   failed_when: false
 
 - name: Create secure boot keys
+  become: true
   ansible.builtin.command: sbctl create-keys
-  when: "sbctl_status.stdout is not search('Installed:.*✓')"
-  become: true
+  when: "'Installed:\t✘ sbctl is installed' in sbctl_status.stdout"
 
-- name: Sign EFI binaries
-  ansible.builtin.command: "sbctl sign -s {{ item }}"
-  loop:
-    - /boot/EFI/BOOT/BOOTX64.EFI
-    - /boot/vmlinuz-linux
-    - /boot/EFI/systemd/systemd-bootx64.efi
-    - /boot/EFI/Linux/arch-linux.efi
-  changed_when: true
-
-- name: Verify signed EFI binaries
-  ansible.builtin.command: sbctl verify
-  register: sbctl_verify
-  changed_when: false
+- name: Sign all tracked EFI binaries
   become: true
-
-- name: Remove immutable attribute from EFI variables
-  ansible.builtin.shell: |
-    for f in /sys/firmware/efi/efivars/{KEK,db}-*; do
-        if [ -f "$f" ]; then
-            chattr -i "$f"
-        fi
-    done
-  args:
-    executable: /bin/bash
-  when: "sbctl_status.stdout is search('Enrolled:.*✘')"
-  changed_when: true
-  become: true
+  ansible.builtin.command: sbctl sign-all
+  register: sign_all_output
+  changed_when: "'Signing' in sign_all_output.stdout"
 
 - name: Enroll secure boot keys
-  ansible.builtin.command: "sbctl enroll-keys -m"
+  become: true
+  ansible.builtin.command: sbctl enroll-keys -m
   register: enroll_result
   when:
-    - "sbctl_status.stdout is search('Enrolled:.*✘')"
-    - "sbctl_status.stdout is search('Setup Mode:.*Enabled')"
-  become: true
+    - "'Enrolled: \t✘' in sbctl_status.stdout"
+    - "'Setup Mode:\t✘ Disabled' in sbctl_status.stdout"
 
-- name: Reboot local machine (Fire and Forget)
-  ansible.builtin.shell: "sleep 2 && shutdown -r now"
-  async: 1
-  poll: 0
-  when: enroll_result is changed
+- name: Reboot after enrollment
   become: true
-
-- name: Stop playbook execution
-  ansible.builtin.meta: end_play
+  ansible.builtin.reboot:
+    msg: "Rebooting to finalize Secure Boot enrollment"
+    post_reboot_delay: 10
   when: enroll_result is changed
+
+#- name: Remove immutable attribute from EFI variables
+#  ansible.builtin.shell: |
+#    for f in /sys/firmware/efi/efivars/{KEK,db}-*; do
+#        if [ -f "$f" ]; then
+#            chattr -i "$f"
+#        fi
+#    done
+#  args:
+#    executable: /bin/bash
+#  when: "sbctl_status.stdout is search('Enrolled:.*✘')"
+#  changed_when: true
+#  become: true

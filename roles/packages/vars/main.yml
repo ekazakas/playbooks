@@ -1,0 +1,21 @@
+---
+system_packages:
+  # Base development tools
+  - linux-headers
+  - base-devel
+  - git
+  - less
+  # Env Utilities
+  - bash-completion
+  - chezmoi
+  # Camera
+  - pipewire-libcamera
+  - libcamera-tools
+  # Network
+  - networkmanager-openvpn
+  # Desktop
+  - xdg-desktop-portal-gnome
+  # Cloud
+  - kubectl
+  - helm
+  - aws-cli-v2

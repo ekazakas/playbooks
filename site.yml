@@ -2,6 +2,8 @@
 - name: Local environment setup
   hosts: local
   roles:
-    - packages
-    - flatpak
+    - filesystem
     - secure_boot
+    - packages
+    - docker
+    - flatpak

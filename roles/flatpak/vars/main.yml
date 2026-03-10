@@ -1,0 +1,4 @@
+---
+flatpak_apps:
+  - org.mozilla.firefox
+  - com.slack.Slack
