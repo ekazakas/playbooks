@@ -1,5 +1,5 @@
 ---
-system_packages:
+packages_system:
   # Base development tools
   - linux-headers
   - base-devel

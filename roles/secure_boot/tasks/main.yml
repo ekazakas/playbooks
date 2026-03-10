@@ -2,34 +2,49 @@
 - name: Install secure boot utilities
   become: true
   community.general.pacman:
-    name: "{{ sb_packages }}"
+    name: "{{ secure_boot_packages }}"
     state: present
     update_cache: true
 
 - name: Check sbctl status
   ansible.builtin.command: sbctl status
-  register: sbctl_status
+  register: secure_boot_sbctl_status
   changed_when: false
   failed_when: false
 
 - name: Create secure boot keys
   become: true
   ansible.builtin.command: sbctl create-keys
-  when: "'Installed:\t✘ sbctl is installed' in sbctl_status.stdout"
+  when: secure_boot_sbctl_status.stdout is search('Installed:\s+✘ sbctl is installed')
+  changed_when: true
 
 - name: Sign all tracked EFI binaries
   become: true
   ansible.builtin.command: sbctl sign-all
-  register: sign_all_output
-  changed_when: "'Signing' in sign_all_output.stdout"
+  register: secure_boot_sign_output
+  changed_when: secure_boot_sign_output.stdout is search('Signing')
+
+- name: Remove immutable attribute from EFI variables
+  become: true
+  ansible.builtin.shell: |
+    for f in /sys/firmware/efi/efivars/{KEK,db}-*; do
+        if [ -f "$f" ]; then
+            chattr -i "$f"
+        fi
+    done
+  args:
+    executable: /bin/bash
+  when: secure_boot_sbctl_status.stdout is search('Enrolled:.*✘')
+  changed_when: true
 
 - name: Enroll secure boot keys
   become: true
   ansible.builtin.command: sbctl enroll-keys -m
-  register: enroll_result
+  register: secure_boot_enroll_result
   when:
-    - "'Enrolled: \t✘' in sbctl_status.stdout"
-    - "'Setup Mode:\t✘ Disabled' in sbctl_status.stdout"
+    - secure_boot_sbctl_status.stdout is search('Enrolled:\s+✘')
+    - secure_boot_sbctl_status.stdout is search('Setup Mode:\s+✘')
+  changed_when: true
 
 - name: Reboot after enrollment
   become: true
@@ -37,16 +52,3 @@
     msg: "Rebooting to finalize Secure Boot enrollment"
     post_reboot_delay: 10
   when: enroll_result is changed
-
-#- name: Remove immutable attribute from EFI variables
-#  ansible.builtin.shell: |
-#    for f in /sys/firmware/efi/efivars/{KEK,db}-*; do
-#        if [ -f "$f" ]; then
-#            chattr -i "$f"
-#        fi
-#    done
-#  args:
-#    executable: /bin/bash
-#  when: "sbctl_status.stdout is search('Enrolled:.*✘')"
-#  changed_when: true
-#  become: true

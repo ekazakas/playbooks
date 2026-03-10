@@ -14,8 +14,8 @@
     append: true
 
 - name: Check if /var/lib/docker is on Btrfs
-  set_fact:
-    is_btrfs: "{{ is_btrfs | default(false) or item.fstype == 'btrfs' }}"
+  ansible.builtin.set_fact:
+    docker_is_btrfs: "{{ docker_is_btrfs | default(false) or item.fstype == 'btrfs' }}"
   loop: "{{ ansible_facts['mounts'] }}"
   when: item.mount in ['/', '/var/lib/docker']
 
@@ -23,11 +23,12 @@
   become: true
   ansible.builtin.copy:
     dest: /etc/docker/daemon.json
+    mode: "0644"
     content: |
       {
-        "storage-driver": "{{ 'btrfs' if is_btrfs | default(false) else 'overlay2' }}"
+        "storage-driver": "{{ 'btrfs' if docker_is_btrfs | default(false) else 'overlay2' }}"
       }
-  notify: restart docker
+  notify: Restart docker
 
 - name: Enable and start Docker service
   become: true

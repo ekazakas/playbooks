@@ -1,8 +1,8 @@
 ---
-fs_packages:
+filesystem_packages:
   - snapper
   - snap-pac
 
-snapper_services:
+filesystem_snapper_services:
   - snapper-timeline.timer
   - snapper-cleanup.timer

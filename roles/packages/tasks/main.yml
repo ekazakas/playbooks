@@ -2,6 +2,6 @@
 - name: Install system packages
   become: true
   community.general.pacman:
-    name: "{{ system_packages }}"
+    name: "{{ packages_system }}"
     state: present
     update_cache: true

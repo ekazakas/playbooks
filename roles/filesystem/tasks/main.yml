@@ -2,19 +2,20 @@
 - name: Install filesystem utilities
   become: true
   community.general.pacman:
-    name: "{{ fs_packages }}"
+    name: "{{ filesystem_packages }}"
     state: present
     update_cache: true
 
 - name: Check if snapper config for root exists
   ansible.builtin.stat:
     path: /etc/snapper/configs/root
-  register: snapper_config
+  register: filesystem_snapper_config
 
 - name: Create snapper root config
   become: true
   ansible.builtin.command: snapper -c root create-config /
-  when: not snapper_config.stat.exists
+  when: not filesystem_snapper_config.stat.exists
+  changed_when: true
 
 - name: Ensure snapper services are enabled
   become: true
@@ -22,4 +23,4 @@
     name: "{{ item }}"
     enabled: true
     state: started
-  loop: "{{ snapper_services }}"
+  loop: "{{ filesystem_snapper_services }}"

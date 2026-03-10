@@ -1,3 +1,3 @@
 ---
-sb_packages:
+secure_boot_packages:
   - sbctl
