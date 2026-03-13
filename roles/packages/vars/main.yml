@@ -3,6 +3,8 @@ packages_system:
   # Base development tools
   - linux-headers
   - base-devel
+  - gcc
+  - cmake
   - nvim
   - less
   # Env Utilities
